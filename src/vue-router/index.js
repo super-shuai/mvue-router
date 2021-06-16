@@ -8,12 +8,12 @@ import { install,_Vue} from "./install";
 // 路由的核心原理 就是根据路径 返回对应的组件
 export default class VueRouter{
     constructor(options){
-        console.log(111)
         // 根据用户的配置生成一个映射表 ，稍后跳转时 根据路径找到对应的组件来进行渲染
 
         // 创建匹配器后，核心的方法就是匹配 
         // match  addRoutes
         this.matcher = createMatcher(options.routes || []);
+        this.beforeEachHooks = []
 
         // 根据当前的mode 创建不同的history 管理策略
         switch (options.mode) {
@@ -28,7 +28,12 @@ export default class VueRouter{
     match(location){
         return this.matcher.match(location);
     }
-   
+    push(location){
+        this.history.push(location);
+    }
+    beforeEach(fn){
+        this.beforeEachHooks.push(fn);
+    }
     init(app){ // app 根实例
         // 路由初始化
         // 初始化后 需要先根据路径做一次匹配，后续根据hash值的变化再次匹配
@@ -38,6 +43,9 @@ export default class VueRouter{
         }// history模式
         history.transitionTo(history.getCurrentLocation(),setupHashListener); // 跳转到哪里
 
+        history.listen((route)=>{ // 改变了 响应式数据
+            app._route = route;
+        })
     }
 }
 
